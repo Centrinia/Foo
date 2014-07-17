@@ -1,0 +1,34 @@
+<h1>i can haz a webring
+<br>
+<marquee>dis bee som cites
+<ul>
+  $forall (Entity id site,r) <- zip sites rnds
+    $if r == 0
+      <li .blink>
+        <b>#{T.take 80 $ siteOwner site}
+        has a website at
+        <a href=#{siteUrl site}>#{T.take 200 $ siteUrl site}
+    $elseif r == 1
+      <li>
+        <marquee>
+          <b>#{T.take 80 $ siteOwner site}
+          has a website at
+          <a href=#{siteUrl site}>#{T.take 200 $ siteUrl site}
+    $elseif r == 3
+      <li .blink>
+        <marquee>
+          <b>#{T.take 80 $ siteOwner site}
+          has a website at
+          <a href=#{siteUrl site}>#{T.take 200 $ siteUrl site}
+    $else
+      <li>
+        <b>#{T.take 80 $ siteOwner site}
+        has a website at
+        <a href=#{siteUrl site}>#{T.take 200 $ siteUrl site}
+
+
+<h1>put ur sight heer
+<form method=post action=@{RingR}#form enctype=#{formEnctype}>
+  ^{formWidget}
+  <input type="submit" value="Submit">
+
