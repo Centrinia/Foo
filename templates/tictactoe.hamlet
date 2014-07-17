@@ -1,0 +1,21 @@
+
+<ul .playerMenu>
+  <li>
+    <a href="#" #xplayer>Player X
+    <ul>
+      <li>
+        <a href="#" .menuItem side="X" player="computer">Computer
+      <li>
+        <a href="#" .menuItem side="X" player="human">Human
+  <li>
+    <a href="#" #oplayer>Player O
+    <ul>
+      <li>
+        <a href="#" .menuItem side="O" player="computer">Computer
+      <li>
+        <a href="#" .menuItem side="O" player="human">Human
+
+<div #game>
+  <canvas #canvas width=#{canvasSize} height=#{canvasSize}>
+
+

@@ -1,0 +1,24 @@
+Default: &defaults
+  user: foo
+  password: W0k4E4KNmk1ZnOg2zetUKJx
+  host: centrinia.ddns.net
+  port: 5432
+  database: Foo
+  poolsize: 10
+
+Development:
+  <<: *defaults
+
+Testing:
+  database: Foo_test
+  <<: *defaults
+
+Staging:
+  database: Foo_staging
+  poolsize: 100
+  <<: *defaults
+
+Production:
+  database: Foo
+  poolsize: 100
+  <<: *defaults
