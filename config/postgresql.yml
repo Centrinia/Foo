@@ -9,6 +9,7 @@ Default: &defaults
 
 Development:
   <<: *defaults
+  host: centrinia.ddns.net
 
 Testing:
   database: Foo_test

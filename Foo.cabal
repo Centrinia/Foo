@@ -25,6 +25,8 @@ library
                      Handler.Shit
                      Handler.Ring
                      Handler.TicTacToe
+                     Handler.Blog
+                     Handler.BlogReply
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -77,6 +79,7 @@ library
                  , fast-logger                   >= 0.3
                  , time
                  , network
+                 , blaze-html
 
 executable         Foo
     if flag(library-only)

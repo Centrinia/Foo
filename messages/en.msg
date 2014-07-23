@@ -19,3 +19,6 @@ Author: Author
 Contents: Contents
 Url: Url
 Owner: Owner
+Blog: My Blog
+PostComment: Post A Comment
+PostedOn: Someone Posted On

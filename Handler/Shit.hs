@@ -24,7 +24,6 @@ postShitR :: Handler Html
 postShitR = do
     ((result, _), _) <- runFormPost entryForm
     runDB $ do 
-      return ()
       case result of
         FormSuccess res -> insertUnique res >> return ()
         _ -> return ()

@@ -10,3 +10,5 @@
 /shit ShitR GET POST
 /ring RingR GET POST
 /tictactoe TicTacToeR GET
+/blog/#CommentId BlogR GET POST
+/blog/reply/#CommentId BlogReplyR GET
