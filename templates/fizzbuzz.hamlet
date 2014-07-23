@@ -1,5 +1,5 @@
 
 <ul>
   $forall i <- workset
-    <li>#{fizzbuzz i}
+    <li>#{fizzbuzz fb i}
 

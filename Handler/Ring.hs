@@ -1,35 +1,31 @@
 module Handler.Ring where
 
-import Data.Time
 import Import
+import qualified Network.URI
 import qualified Data.Text as T
-import qualified System.Random as RND
-import qualified Control.Monad as M
-title :: String
-title = "Web Ring"
+
 
 entryForm :: Form Site
 entryForm = renderDivs $ Site
-    <$> areq textField "Owner" Nothing
-    <*> areq textField "Url" Nothing
+    <$> areq textField (fieldSettingsLabel MsgOwner) Nothing
+    <*> areq textField (fieldSettingsLabel MsgUrl) Nothing
 
 getRingR :: Handler Html
 getRingR = do
     (formWidget, formEnctype) <- generateFormPost entryForm
     let handlerName = "getRingR" :: Text
     sites <- runDB $ selectList [] [Asc SiteOwner]
-    rnds <- liftIO $ M.replicateM (length sites) (RND.randomRIO (0,3) :: IO Int)
     defaultLayout $ do
-	setTitle $ toHtml title
+	setTitleI MsgWebring
         $(widgetFile "ring")
 
 postRingR :: Handler Html
 postRingR = do
-    ((result, formWidget), formEnctype) <- runFormPost entryForm
+    ((result, _), _) <- runFormPost entryForm
     runDB $ do 
       return ()
       case result of
-        FormSuccess res -> insert res >> return ()
+        FormSuccess res -> insertUnique res >> return ()
         _ -> return ()
     redirect RingR
 

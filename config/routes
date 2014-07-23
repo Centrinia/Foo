@@ -9,3 +9,4 @@
 /fizzbuzz/#Int FizzBuzzR GET
 /shit ShitR GET POST
 /ring RingR GET POST
+/tictactoe TicTacToeR GET

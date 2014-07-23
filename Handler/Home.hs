@@ -13,6 +13,6 @@ import Import
 getHomeR :: Handler Html
 getHomeR = do
     defaultLayout $ do
-        setTitle "Home"
+        setTitleI MsgHome
         $(widgetFile "homepage")
 

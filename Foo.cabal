@@ -24,6 +24,7 @@ library
                      Handler.FizzBuzz
                      Handler.Shit
                      Handler.Ring
+                     Handler.TicTacToe
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -75,7 +76,7 @@ library
                  , monad-logger                  >= 0.3
                  , fast-logger                   >= 0.3
                  , time
-                 , random
+                 , network
 
 executable         Foo
     if flag(library-only)

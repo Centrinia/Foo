@@ -1,8 +1,6 @@
 'use strict';
 
 var timeout = 100;
-//var isComputer = {'X' : true,'O': true};
-//var isComputer = {'X' : true,'O': false};
 var isComputer = {'X' : false,'O':true};
 
 function drawBoard(canvas,context,players) {
@@ -256,13 +254,16 @@ $(document).ready(function() {
 	$('a.menuItem').bind('click', handleMenuClick);
 
 	function displayPlayer(side) {
-		$('#' + side.toLowerCase() + 'player').text('Player ' + side + ': ' + (isComputer[side] ? 'Computer' : 'Human'));
+		var sideSelectorPlayer = '[player=\'' + (isComputer[side] ? 'computer' : 'human') + '\']';
+		var sideSelectorSide = '[side=\'' + side + '\']';
+		var sideText = $('a.menuItem' + sideSelectorPlayer + sideSelectorSide).text();
+		$('#' + side.toLowerCase() + 'playerdisp').text(sideText);
 	}
+
 	displayPlayer('X');
 	displayPlayer('O');
 	function handleMenuClick() {
 		var playerComputer;
-		//console.log($(this).attr('side'),$(this).attr('player'));
 		switch($(this).attr('player')) {
 			case 'human':
 				playerComputer = false;
@@ -300,13 +301,11 @@ $(document).ready(function() {
 		if(moves[player[0]]) {
 			try {
 				makeMove(moves[player[0]]['row'],moves[player[0]]['column'],positions,player[0]);
-				console.log(moves[player[0]],player[0]);
 				drawBoard(canvas,context,positions);
 				if(hasWon(positions[player[0]])) {
 					alert(player[0] + ' has won!');
 					clearBoard();
 				} else if((positions['X'] | positions['O'] & 0x1ff) == 0x1ff) {
-					//alert('Tie!');
 					clearBoard();
 				} else {
 					moves[player[0]] = null;

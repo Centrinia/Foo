@@ -1,6 +1,13 @@
-<h1>My Site
+<h1>_{MsgMySite}
 
-This is my site. If you want one then get your own.
+_{MsgThisMySite}
 
+<ul>
+  <li>
+    <a href=@{RingR}>_{MsgWebring}
+  <li>
+    <a href=@{TicTacToeR}>_{MsgTicTacToe}
+  <li>
+    <a href=@{ShitR}>_{MsgGuestbook}
 
 

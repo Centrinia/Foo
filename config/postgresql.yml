@@ -1,7 +1,8 @@
 Default: &defaults
   user: foo
   password: W0k4E4KNmk1ZnOg2zetUKJx
-  host: centrinia.ddns.net
+  #host: centrinia.ddns.net
+  host: localhost
   port: 5432
   database: Foo
   poolsize: 10
