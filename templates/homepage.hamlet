@@ -4,6 +4,8 @@ _{MsgThisMySite}
 
 <ul>
   <li>
+    <a href=@{BlogR Nothing}>_{MsgBlog}
+  <li>
     <a href=@{RingR}>_{MsgWebring}
   <li>
     <a href=@{TicTacToeR}>_{MsgTicTacToe}

@@ -4,12 +4,6 @@ User
     UniqueUser ident
     deriving Typeable
 
-Email
-    email Text
-    user UserId Maybe
-    verkey Text Maybe
-    UniqueEmail email
-
 Post
     author Text
     contents Textarea
@@ -23,6 +17,7 @@ Site
 Comment
     parent CommentId Maybe
     title Text Maybe
+    user User Maybe
     contents Html
     creation UTCTime default=now()
 

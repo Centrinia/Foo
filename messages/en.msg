@@ -19,6 +19,8 @@ Author: Author
 Contents: Contents
 Url: Url
 Owner: Owner
-Blog: My Blog
+Blog: Blog
 PostComment: Post A Comment
-PostedOn: Someone Posted On
+PostedOn: posted on
+AnonymousCoward: Anonymous Coward
+

@@ -1,23 +1,16 @@
+$maybe userId' <- user
+  <span>You are logged in as #{show $ userIdent userId'}
+  <a href=@{AuthR LogoutR}>Logout
+$nothing
+  <a href=@{AuthR LoginR}>Login
+$#  <a href=@{newAccountR}>Sign-up
+
 <h1>_{MsgBlog}
 <br>
 ^{renderCommentForest commentTrees}
-<br>
 
-$#<ul>
-$#  $forall Entity commentId comment <- comments
-$#    <li>
-$#      <div .comment reply-url=@{BlogReplyR commentId}>
-$#        <span>
-$#          _{MsgSaidOn} #{show $ commentCreation comment}:
-$#            <div .commentArea>
-$#              ^{commentContents comment}
-$#        <a href=# .reply>Reply
-
-
-$#<div #blogForm>
-$#  <h1>_{MsgPostComment}
-$#  <form #commentForm method=post action=@{BlogR commentId}#form enctype=#{formEnctype}>
-$#    ^{formWidget}
-$#    <input type="submit" value=_{MsgSubmit}>
+$#<form #commentForm method=post action=@{BlogR maybeCommentId}#form enctype=#{formEnctype}>
+$#  ^{formWidget}
+$#  <input type="submit" value="Submit">
 
 

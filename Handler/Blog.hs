@@ -2,29 +2,31 @@
 module Handler.Blog where
 
 import Import
-import Data.Maybe (maybe)
+--import Data.Maybe (maybe)
 import Data.Time
-import qualified Data.Text as T
-import Text.Blaze.Html.Renderer.Text (renderHtml)
-import Data.Text.Lazy (toStrict)
-import Data.List ((\\))
+--import qualified Data.Text as T
+--import Data.Text.Lazy (toStrict)
+--import Data.List ((\\))
 --import Database.Persist.Sql.Types (SqlBackend)
-import Data.Function (on)
+--import Data.Function (on)
+import Yesod.Auth
 
-entryForm :: CommentId -> Form Comment
-entryForm commentId = renderDivs $ Comment
-    <$> pure (Just commentId)
+entryForm :: Maybe User -> Maybe CommentId -> Form Comment
+entryForm user maybeCommentId = renderDivs $ Comment
+    <$> pure maybeCommentId
     <*> pure Nothing
+    <*> pure user
     <*> areq htmlField (fieldSettingsLabel MsgContents) Nothing
     <*> lift (liftIO getCurrentTime)
 
 data Tree a = Node a [Tree a]
 
-instance Show Comment where
+{-instance Show Comment where
   show (Comment parent title contents creation) = unwords ("Comment":map (maybe "" T.unpack) [title,Just $ toStrict $ renderHtml $ contents,Just $ T.pack $ show creation])
 
 instance Show a => Show (Tree a) where
   show (Node a as) = (unwords ["Node",show a]) ++ (showList as "")
+-}
 
 --type BackedComment = KeyBackend Database.Persist.Sql.Types.SqlBackend Comment
 type EntityComment = Entity Comment
@@ -38,12 +40,14 @@ makeCommentTree (Just parent) comments =
     subchildren = comments --  \\ children
   in [Node parent $ concat [makeCommentTree (Just child) subchildren | child <- children]]
 
+renderCommentForest :: [Tree EntityComment] -> Widget
 renderCommentForest commentTrees =
   [whamlet|
   $forall commentTree <- commentTrees
     ^{renderCommentTree commentTree}
   |]
 
+renderCommentTree :: Tree EntityComment -> Widget
 renderCommentTree (Node a []) =
   renderComment a
 
@@ -57,19 +61,18 @@ renderCommentTree (Node root commentTrees) =
           ^{renderCommentTree tree}
   |]
 
+renderComment :: EntityComment -> Widget
 renderComment (Entity commentId comment) =
-  [whamlet|
-      <div .comment reply-url=@{BlogReplyR commentId}> 
-        <span>
-          _{MsgPostedOn} #{show $ commentCreation comment}:
-            <div .commentArea>
-              ^{commentContents comment}
-        <a href=# .reply>Reply
-  |]
+  $(widgetFile "blog-comment")
 
-getBlogR :: CommentId -> Handler Html
-getBlogR commentId = do
-    (formWidget, formEnctype) <- generateFormPost $ entryForm commentId
+getBlogR :: Maybe CommentId -> Handler Html
+getBlogR maybeCommentId = do
+    authId <- maybeAuthId
+    user <- case authId of
+      Just authId' -> runDB $ get authId'
+      Nothing -> return Nothing
+
+    (formWidget, formEnctype) <- generateFormPost $ entryForm user maybeCommentId
     let handlerName = "getBlogR" :: Text
     --comments <- runDB $ selectList [] [Desc CommentCreation]
     comments <- runDB $ selectList [] []
@@ -83,15 +86,19 @@ getBlogR commentId = do
         $(widgetFile "blog")
 
 
-postBlogR :: CommentId -> Handler Html
-postBlogR commentId = do
-    ((result, _), _) <- runFormPost $ entryForm commentId
+postBlogR :: Maybe CommentId -> Handler Html
+postBlogR maybeCommentId = do
+    authId <- maybeAuthId
+    user <- case authId of
+      Just authId' -> runDB $ get authId'
+      Nothing -> return Nothing
+
+    ((result, _), _) <- runFormPost $ entryForm user maybeCommentId
     runDB $ do 
-      return ()
       case result of
         FormSuccess res -> insertUnique res >> return ()
         _ -> return ()
-    redirect (BlogR commentId)
+    redirect (BlogR maybeCommentId)
 
 
 

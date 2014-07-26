@@ -17,4 +17,6 @@ Staging:
 
 Production:
   #approot: "http://www.example.com"
+  approot: "http://centrinia.ddns.net"
+  port: 80
   <<: *defaults

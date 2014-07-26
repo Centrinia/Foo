@@ -18,7 +18,8 @@ import Network.HTTP.Conduit (newManager, def)
 import Control.Monad.Logger (runLoggingT)
 import System.IO (stdout)
 import System.Log.FastLogger (mkLogger)
-import Network.Wai.Middleware.Gzip (gzip, def, gzipFiles, GzipFiles(..))
+import Network.Wai.Middleware.Gzip (gzip,gzipFiles,GzipFiles(..))
+--import Network.Wai.Middleware.Gzip (gzip, def, gzipFiles, GzipFiles(..))
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!

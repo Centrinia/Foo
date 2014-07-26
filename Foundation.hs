@@ -4,8 +4,9 @@ import Prelude
 import Yesod
 import Yesod.Static
 import Yesod.Auth
+--import Yesod.Auth.Account
 import Yesod.Auth.BrowserId
-import Yesod.Auth.GoogleEmail
+--import Yesod.Auth.Dummy
 import Yesod.Default.Config
 import Yesod.Default.Util (addStaticContentExternal)
 import Network.HTTP.Conduit (Manager)
@@ -19,6 +20,18 @@ import Model
 import Text.Jasmine (minifym)
 import Text.Hamlet (hamletFile)
 import System.Log.FastLogger (Logger)
+--import Web.PathPieces (PathPiece(..))
+import qualified Data.Text as S
+
+instance (PathPiece a) => PathPiece (Maybe a) where
+    fromPathPiece s = case S.stripPrefix "$" s of
+        Just r -> Just `fmap` fromPathPiece r
+        _ -> case s of
+            "[]" -> Just Nothing
+            _ -> Nothing
+    toPathPiece m = case m of
+        Just s -> "$" `S.append` toPathPiece s
+        _ -> "[]"
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -142,7 +155,10 @@ instance YesodAuth App where
                 fmap Just $ insert $ User (credsIdent creds) Nothing
 
     -- You can add other plugins like BrowserID, email or OAuth here
-    authPlugins _ = [authBrowserId def, authGoogleEmail]
+    --authPlugins _ = [authBrowserId def, authGoogleEmail]
+    authPlugins _ = [authBrowserId def]
+    --authPlugins _ = [authDummy]
+    --authPlugins _ = [authMessage]
 
     authHttpManager = httpManager
 
