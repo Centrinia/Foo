@@ -7,7 +7,6 @@ import Data.Time
 import qualified Data.Text as T
 import Data.Text.Lazy (toStrict)
 import Data.List ((\\))
---import Database.Persist.Sql.Types (SqlBackend)
 import Data.Function (on)
 import Yesod.Auth
 import System.Locale (defaultTimeLocale)
@@ -25,20 +24,15 @@ data Tree a = Node a [Tree a]
 instance Show Comment where
   show (Comment parent title user contents creation) = unwords ("Comment":map (maybe "" T.unpack) [Just $ T.pack $ show $ user,title {-,Just $ toStrict $ renderHtml $ contents -} ,Just $ T.pack $ show creation])
 
-{-instance Show a => Show (Tree a) where
-  show (Node a as) = (unwords ["Node",show a]) ++ (showList as "")
--}
 
---type BackedComment = KeyBackend Database.Persist.Sql.Types.SqlBackend Comment
 type EntityComment = Entity Comment
---makeCommentTree :: Maybe Comment -> [Comment] -> [Tree Comment]
 makeCommentTree :: Maybe EntityComment -> [EntityComment] -> [Tree EntityComment]
 makeCommentTree Nothing comments =
   concat [makeCommentTree (Just comment) comments | comment <- comments, (commentParent $ entityVal comment) == Nothing]
 makeCommentTree (Just parent) comments =
   let
     children = filter (\comment -> (commentParent $ entityVal comment) == (Just $ entityKey parent)) comments
-    subchildren = comments --  \\ children
+    subchildren = comments -- \\ children
   in [Node parent $ concat [makeCommentTree (Just child) subchildren | child <- children]]
 
 renderCommentForest :: [Tree EntityComment] -> Widget
@@ -73,16 +67,11 @@ getBlogR maybeCommentId = do
     user <- case authId of
       Just authId' -> runDB $ get authId'
       Nothing -> return Nothing
-    --(formWidget, formEnctype)
     formItems <- case user of
       Just user' -> (generateFormPost $ entryForm (Just user') Nothing) >>= (return . Just)
       Nothing -> return $ Nothing
 
-    --comments <- runDB $ selectList [] [Desc CommentCreation]
     comments <- runDB $ selectList [] []
-    --lift $ mapM_ (\(Entity i e) -> print $ i) comments
-    --lift $ mapM_ print comments
-    --lift $ print $ makeCommentTree Nothing comments
     let commentTrees = makeCommentTree Nothing comments
     defaultLayout $ do
 	setTitleI $ MsgBlog
