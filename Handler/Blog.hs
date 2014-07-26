@@ -2,29 +2,30 @@
 module Handler.Blog where
 
 import Import
---import Data.Maybe (maybe)
+import Data.Maybe (maybe,isJust)
 import Data.Time
---import qualified Data.Text as T
---import Data.Text.Lazy (toStrict)
---import Data.List ((\\))
+import qualified Data.Text as T
+import Data.Text.Lazy (toStrict)
+import Data.List ((\\))
 --import Database.Persist.Sql.Types (SqlBackend)
---import Data.Function (on)
+import Data.Function (on)
 import Yesod.Auth
+import System.Locale (defaultTimeLocale)
 
 entryForm :: Maybe User -> Maybe CommentId -> Form Comment
 entryForm user maybeCommentId = renderDivs $ Comment
     <$> pure maybeCommentId
-    <*> pure Nothing
+    <*> aopt textField (fieldSettingsLabel MsgTitle) Nothing
     <*> pure user
     <*> areq htmlField (fieldSettingsLabel MsgContents) Nothing
     <*> lift (liftIO getCurrentTime)
 
 data Tree a = Node a [Tree a]
 
-{-instance Show Comment where
-  show (Comment parent title contents creation) = unwords ("Comment":map (maybe "" T.unpack) [title,Just $ toStrict $ renderHtml $ contents,Just $ T.pack $ show creation])
+instance Show Comment where
+  show (Comment parent title user contents creation) = unwords ("Comment":map (maybe "" T.unpack) [Just $ T.pack $ show $ user,title {-,Just $ toStrict $ renderHtml $ contents -} ,Just $ T.pack $ show creation])
 
-instance Show a => Show (Tree a) where
+{-instance Show a => Show (Tree a) where
   show (Node a as) = (unwords ["Node",show a]) ++ (showList as "")
 -}
 
@@ -43,8 +44,10 @@ makeCommentTree (Just parent) comments =
 renderCommentForest :: [Tree EntityComment] -> Widget
 renderCommentForest commentTrees =
   [whamlet|
-  $forall commentTree <- commentTrees
-    ^{renderCommentTree commentTree}
+  <ul>
+    $forall commentTree <- commentTrees
+      <li .comment>
+        ^{renderCommentTree commentTree}
   |]
 
 renderCommentTree :: Tree EntityComment -> Widget
@@ -53,12 +56,11 @@ renderCommentTree (Node a []) =
 
 renderCommentTree (Node root commentTrees) =
   [whamlet|
-  <div>
-    ^{renderComment root}
-    <ul>
-      $forall tree <- commentTrees
-        <li>
-          ^{renderCommentTree tree}
+  ^{renderComment root}
+  <ul>
+    $forall tree <- commentTrees
+      <li .comment>
+        ^{renderCommentTree tree}
   |]
 
 renderComment :: EntityComment -> Widget
@@ -71,9 +73,11 @@ getBlogR maybeCommentId = do
     user <- case authId of
       Just authId' -> runDB $ get authId'
       Nothing -> return Nothing
+    --(formWidget, formEnctype)
+    formItems <- case user of
+      Just user' -> (generateFormPost $ entryForm (Just user') Nothing) >>= (return . Just)
+      Nothing -> return $ Nothing
 
-    (formWidget, formEnctype) <- generateFormPost $ entryForm user maybeCommentId
-    let handlerName = "getBlogR" :: Text
     --comments <- runDB $ selectList [] [Desc CommentCreation]
     comments <- runDB $ selectList [] []
     --lift $ mapM_ (\(Entity i e) -> print $ i) comments
@@ -85,6 +89,7 @@ getBlogR maybeCommentId = do
 	addScriptRemote "https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
         $(widgetFile "blog")
 
+showTime = formatTime defaultTimeLocale "%B %e, %Y %r %Z"
 
 postBlogR :: Maybe CommentId -> Handler Html
 postBlogR maybeCommentId = do
@@ -93,11 +98,12 @@ postBlogR maybeCommentId = do
       Just authId' -> runDB $ get authId'
       Nothing -> return Nothing
 
-    ((result, _), _) <- runFormPost $ entryForm user maybeCommentId
-    runDB $ do 
-      case result of
-        FormSuccess res -> insertUnique res >> return ()
-        _ -> return ()
+    ((result,_),_) <- runFormPost $ entryForm user maybeCommentId
+
+    case result of
+      FormSuccess res -> runDB $ insert res  >> return ()
+      _ -> return ()
+
     redirect (BlogR maybeCommentId)
 
 

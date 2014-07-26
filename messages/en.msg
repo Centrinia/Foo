@@ -21,6 +21,7 @@ Url: Url
 Owner: Owner
 Blog: Blog
 PostComment: Post A Comment
-PostedOn: posted on
+PostedOn: on
 AnonymousCoward: Anonymous Coward
-
+PostBlogEntry: Post Blog Entry
+Title: Title

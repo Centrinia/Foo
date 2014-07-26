@@ -1,16 +1,20 @@
-$maybe userId' <- user
-  <span>You are logged in as #{show $ userIdent userId'}
-  <a href=@{AuthR LogoutR}>Logout
-$nothing
-  <a href=@{AuthR LoginR}>Login
+<section>
+  $maybe userId' <- user
+    <span>You are logged in as #{show $ userIdent userId'}
+    <a href=@{AuthR LogoutR}>Logout
+  $nothing
+    <a href=@{AuthR LoginR}>Login
 $#  <a href=@{newAccountR}>Sign-up
 
-<h1>_{MsgBlog}
-<br>
-^{renderCommentForest commentTrees}
+<section .comment>
+  <h1>_{MsgBlog}
+  ^{renderCommentForest commentTrees}
 
-$#<form #commentForm method=post action=@{BlogR maybeCommentId}#form enctype=#{formEnctype}>
-$#  ^{formWidget}
-$#  <input type="submit" value="Submit">
+$maybe (formWidget,formEnctype) <- formItems
+  <section>
+    <h1>_{MsgPostBlogEntry}
+    <form #commentForm method=post action=@{BlogR Nothing}#form enctype=#{formEnctype}>
+      ^{formWidget}
+      <input type="submit" value="Submit">
 
 
