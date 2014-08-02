@@ -25,3 +25,6 @@ PostedOn: on
 AnonymousCoward: Anonymous Coward
 PostBlogEntry: Post Blog Entry
 Title: Title
+Hypercube: Hypercube
+Dimension: Dimension
+

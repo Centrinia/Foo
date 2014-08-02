@@ -1,7 +1,7 @@
 <div .comment reply-url=@{BlogReplyR (Just commentId)}>
   $maybe title <- commentTitle comment
     <div>
-       <h4 .commentTitle>#{title}
+       <h4 .commentTitle>#{T.take 140 title}
   <div .commentDetails>
     <span>
       $maybe user <- commentUser comment

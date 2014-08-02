@@ -27,6 +27,7 @@ library
                      Handler.TicTacToe
                      Handler.Blog
                      Handler.BlogReply
+                     Handler.Hypercube
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT

@@ -1,0 +1,9 @@
+<div>
+  <form>
+    <span>_{MsgDimension}:
+    <select #dimension_option>
+      $forall i <- choices
+        <option value=#{i}>#{i}
+<div #game>
+  <canvas #canvas width=#{canvasSize} height=#{canvasSize}>
+

@@ -1,0 +1,271 @@
+function Matrix(rows,columns)
+{
+	this.rows = rows;
+	this.columns = columns;
+	this.data = new Array(rows*columns);
+	for(var i=0;i<this.data.length;i++) {
+		this.data[i] = 0;
+	}
+	this.multiply = function (mat2) {
+		var result = new Matrix(this.rows,mat2.columns);
+		for(var i=0;i<this.rows;i++) {
+			for(var k=0;k<this.columns;k++) {
+				for(var j=0;j<mat2.columns;j++) {
+					result.data[i*mat2.columns+j] +=
+						this.data[i*this.columns+k] * mat2.data[k*mat2.columns+j];
+				}
+			}
+		}
+		return result;
+	}
+	this.transpose = function ()
+	{
+		var result = new Matrix(this.columns,this.rows);
+		for(var i=0;i<this.rows;i++) {
+			for(var j=0;j<this.columns;j++) {
+				result.data[j*result.columns+i] = this.data[i*this.columns+j];
+			}
+		}
+		return result;
+	}
+
+	this.qr = function () {
+		function householder(x) {
+			var x_norm2_squared = 0;
+			for(var i=1;i<x.length;i++) {
+				x_norm2_squared += x[i]*x[i];
+			}
+			var x_norm = Math.sqrt(x[0]*x[0]+x_norm2_squared);
+			var alpha = x[0] + (x[0] > 0 ? x_norm : -x_norm);
+
+			var u_norm_squared = alpha*alpha+x_norm2_squared;
+
+			return {'alpha': alpha, 'norm squared' : u_norm_squared};
+		}
+
+		var q = new Matrix(this.rows,this.rows);
+		var r = new Matrix(this.rows,this.columns);
+		for(var i=0;i<this.rows*this.columns;i++) {
+			r.data[i] = this.data[i];
+		}
+		for(var i=0;i<this.rows;i++) {
+			q.data[i*(this.rows+1)] = 1;
+		}
+		for(var i=0;i<r.columns;i++) {
+			var x = new Array(r.rows-i);
+			for(var j=i;j<r.rows;j++) {
+				x[j-i] = r.data[j*r.columns+i];
+			}
+			// v = [alpha,x(2:)] / sqrt(u_norm_squared)
+			var reflector = householder(x);
+			// Q_{k+1} = Q_k*(I-2*v*v')'; compute 2*Q_k*v/||v|| first
+			var qv = new Array(q.rows);
+			for(var j=0;j<qv.length;j++) {
+				qv[j] = q.data[(j)*q.columns+(i)] * reflector['alpha'];
+				for(var k=1;k<x.length;k++) {
+					qv[j] += q.data[(j)*q.columns+(i+k)] * x[k];
+				}
+				qv[j] *= 2 / reflector['norm squared'];
+			}
+
+			// Update Q_{k+1} = Q_k - (2*Q_k*v)*v'
+			for(var j=0;j<qv.length;j++) {
+				q.data[(j)*q.columns+(i)] -= qv[j]*reflector['alpha'];
+				for(var k=1;k<x.length;k++) {
+					q.data[(j)*q.columns+(i+k)] -= qv[j]*x[k];
+				}
+			}
+
+			// R_{k+1} = (I-2*v*v')*R_k; compute 2*v'*R_k/||v|| first.
+			var rv = new Array(r.columns-i);
+			for(var j=0;j<rv.length;j++) {
+				rv[j] = r.data[(i)*r.columns+(i+j)] * reflector['alpha'];
+				for(var k=1;k<x.length;k++) {
+					rv[j] += r.data[(i+k)*r.columns+(i+j)] * x[k];
+				}
+				rv[j] *= 2 / reflector['norm squared'];
+			}
+			// Update R_{k+1} = R_k - v*(2*v'*R_k)
+			for(var j=0;j<rv.length;j++) {
+				r.data[(i)*r.columns+(i+j)] -= reflector['alpha']*rv[j];
+				for(var k=1;k<x.length;k++) {
+					r.data[(i+k)*r.columns+(i+j)] -= x[k]*rv[j];
+				}
+			}
+		}
+		return {'Q' : q, 'R' : r};
+	}
+	this.slice = function (r,c,h,w) {
+		var result = new Matrix(h,w);
+		for(var i=0;i<h;i++) {
+			for(var j=0;j<w;j++) {
+				result.data[i*w+j] = this.data[(i+r)*this.columns+(j+c)];
+			}
+		}
+		return result;
+	}
+}
+Matrix.identity = function (size) {
+	var result = new Matrix(size,size);
+	for(var i=0;i<size;i++) {
+		result.data[i*(size+1)] = 1;
+	}
+	return result;
+}
+Matrix.rotation = function (spanner, angle) {
+	var q = spanner.qr()['Q'];
+	var rotator = new Matrix(spanner.rows,spanner.rows);
+	var cs = Math.cos(angle);
+	var sn = Math.sin(angle);
+	var givens = [cs,-sn,sn,cs];
+	for(var i=0;i<2;i++) {
+		for(var j=0;j<spanner.rows;j++) {
+			for(var k=0;k<2;k++) {
+				rotator.data[j*spanner.rows+i] += q.data[j*spanner.rows+k]*givens[k*2+i];
+			}
+		}
+	}
+	for(var i=2;i<spanner.rows;i++) {
+		for(var j=0;j<spanner.rows;j++) {
+			rotator.data[j*spanner.rows+i] = q.data[j*spanner.rows+i];
+		}
+	}
+	return rotator.multiply(q.transpose());
+}
+
+Math.mod = function (x,y) {
+	return x-y*Math.floor(x/y);
+}
+
+$(document).ready(function() {
+	var fps = 30;
+	var canvas_name = 'canvas';
+	var canvas = document.getElementById(canvas_name);
+	var context = canvas.getContext('2d');
+
+	var ndmv;
+	var spanners;
+	var angles;
+
+	var angle_speeds;
+	function set_dimension(dimension) {
+		select_model(dimension);
+
+		spanners = new Array(dimension*(dimension+1));
+		angles = new Array(spanners.length);
+		angle_speeds = new Array(spanners.length);
+		var speed_scale = 1/50000;
+		for(var i=0;i<spanners.length;i++) {
+			spanners[i] = new Matrix(dimension,2);
+			for(var j=0;j<dimension*2;j++) {
+				spanners[i].data[j] = Math.random()*2-1;
+			}
+			angles[i] = 0;
+			angle_speeds[i] = Math.random()*Math.PI*2*speed_scale;
+		}	
+		ndmv = Matrix.identity(dimension);
+	} 
+
+	var wireframe_indexes;
+	var colors;
+	function select_model(dimensions) {
+		colors = new Array(1<<dimensions);
+		for(var i=0;i<(1<<dimensions);i++) {
+			colors[i] = new Array(4);
+
+			for(var j=0;j<4;j++) {
+				colors[i][j] = Math.floor(Math.random()*256);
+			}
+			colors[i][3] = 1;
+		}
+	}
+	var rgb = function(c) {
+		return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'; 
+	}
+	var redraw = function() {
+		var width = 4;
+		var height = 4;
+		var far = 100;
+		var near = 0.1;
+		// Clear the canvas.
+		
+		context.lineWidth = 0.001;
+		context.clearRect(0,0,canvas.width,canvas.height);
+		context.save();
+		context.scale(canvas.width, canvas.height);
+		context.translate(0.5,0.5);
+		context.scale(0.5,0.5);
+		for(var i=0;i<colors.length;i++)
+		{
+			var v0 = new Array(2);
+			for(var l=0;l<2;l++) {
+				v0[l] = 0;
+				for(var j=0;j<ndmv.columns;j++) {
+					var t = ((i >> j) & 1) * 2 - 1;
+					v0[l] += t * ndmv.data[j+l*ndmv.columns];
+				}
+			}
+			var v1 = new Array(2);
+			var w0 = new Array(2);
+			var w1 = new Array(2);
+			w0[0] = v0[0] * 2/width;
+			w0[1] = v0[1] * 2/height;
+			for(var j=0;j<ndmv.columns;j++) {
+				var idx = i ^ (1 << j);
+				if(idx >= i) {
+					continue;
+				}
+				
+				var c = 1;
+				if(((i >> j) & 1) == 0) {
+					c = -1;
+				}
+		
+				for(var l=0;l<2;l++) {
+					v1[l] = v0[l] - 2*ndmv.data[j+l*ndmv.columns]*c;
+				}
+
+				w1[0] = v1[0] * 2/width;
+				w1[1] = v1[1] * 2/height;
+				context.beginPath();
+				context.strokeStyle = rgb(colors[i]);
+				context.moveTo(w0[0], w0[1]);
+				context.strokeStyle = rgb(colors[idx]);
+				context.lineTo(w1[0], w1[1]);
+				context.stroke();
+			}
+		}
+		context.restore();
+	};
+
+	var last_time = 0;
+	function animate() {
+		var time_now = new Date().getTime();
+		if (last_time != 0) {
+			var elapsed = time_now - last_time;
+			for(var i=0;i<angles.length;i++) {
+				angles[i] = Math.mod(angles[i]+angle_speeds[i]*elapsed,Math.PI*2);
+			}
+
+			ndmv = Matrix.identity(dimension);
+			for(var i=0;i<spanners.length;i++) {
+				ndmv = Matrix.rotation(spanners[i],angles[i]).multiply(ndmv);
+			}
+		}
+		last_time = time_now;
+	}
+	var dimension = 3;
+	set_dimension(dimension);
+	function tick() {
+		animate();
+		redraw();
+		window.setTimeout(tick, 1000/fps);
+	}
+	tick();
+
+	$('#dimension_option').change(function() {
+		dimension = parseInt($('#dimension_option').val());
+		set_dimension(dimension);
+	});
+});
+

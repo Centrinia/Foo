@@ -11,5 +11,7 @@ _{MsgThisMySite}
     <a href=@{TicTacToeR}>_{MsgTicTacToe}
   <li>
     <a href=@{ShitR}>_{MsgGuestbook}
+  <li>
+    <a href=@{HypercubeR}>_{MsgHypercube}
 
 

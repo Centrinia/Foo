@@ -6,10 +6,8 @@ import Yesod.Auth
 
 entryForm :: Maybe User -> Maybe CommentId -> Form Comment
 entryForm user maybeCommentId = renderDivs $ Comment
-    -- <$> lift (return $ Just commentId)
     <$> pure maybeCommentId -- Parent
     <*> aopt textField (fieldSettingsLabel MsgTitle) Nothing
-    -- <*> pure Nothing -- Title
     <*> pure user -- User
     <*> areq htmlField (fieldSettingsLabel MsgContents) Nothing
     <*> lift (liftIO getCurrentTime)
@@ -28,12 +26,7 @@ getBlogReplyR maybeCommentId = do
             <input type="submit" value="Submit">
         |]
 
-    {-defaultLayout $ do
-      toWidget ham-}
-
     pc <- widgetToPageContent ham
-    {-giveUrlRenderer [hamlet|
-        ^{pageBody pc}
-      |]-}
+
     giveUrlRenderer $ pageBody pc
 

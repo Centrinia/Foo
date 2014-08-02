@@ -12,3 +12,4 @@
 /tictactoe TicTacToeR GET
 /blog/#Maybe-CommentId BlogR GET POST
 /blog/reply/#Maybe-CommentId BlogReplyR GET
+/hypercube HypercubeR GET

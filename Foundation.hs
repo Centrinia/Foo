@@ -6,7 +6,7 @@ import Yesod.Static
 import Yesod.Auth
 --import Yesod.Auth.Account
 import Yesod.Auth.BrowserId
---import Yesod.Auth.Dummy
+import Yesod.Auth.Dummy
 import Yesod.Default.Config
 import Yesod.Default.Util (addStaticContentExternal)
 import Network.HTTP.Conduit (Manager)
@@ -156,8 +156,8 @@ instance YesodAuth App where
 
     -- You can add other plugins like BrowserID, email or OAuth here
     --authPlugins _ = [authBrowserId def, authGoogleEmail]
-    authPlugins _ = [authBrowserId def]
-    --authPlugins _ = [authDummy]
+    --authPlugins _ = [authBrowserId def]
+    authPlugins _ = [authDummy]
     --authPlugins _ = [authMessage]
 
     authHttpManager = httpManager
